@@ -1,0 +1,221 @@
+<!-- Valadestra@2018 -->
+<!doctype html>
+<html lang="en">
+	<head>
+		<!-- Required meta tags -->
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		
+		<!-- Bootstrap CSS -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+		<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+		
+		<title>biston.loop@gmail.com</title>
+	</head>
+	<body><hr>
+	<div class="container"><h1>Stellar CreateClaimable</h1></div><hr>	
+     <p><div class="container"></P>
+		</div>
+		
+		<div class="container">
+		<div class="mx-auto" style="width: 200px;">
+		<p><h5></h5></p>
+		</div>
+		</div>
+		<p><div class="container"></p>
+		<!--<div class="row"> <p><h3 class="col-sm-3">Diruna Mass Payments One Sender</h3></p></div>-->
+			<div class="row">
+				<div class="col-md-12">
+
+
+
+						<div class="form-group row">
+							<label for="inputEmail3" class="col-sm-2 col-form-label">Sponsor SK</label>
+							<div class="col-sm-5">
+								<input type="text" class="form-control" id="secretkey" name="secretkey" placeholder="Secret Key Sponsor">
+							</div>
+						</div>
+
+						<div class="form-group row">
+							<label for="inputEmail3" class="col-sm-2 col-form-label">Claim Amount</label>
+							<div class="col-sm-5">
+								<input type="text" class="form-control" id="amo" name="amo" value="1">
+							</div>
+						</div>
+
+
+						<div class="form-group row">
+							<label for="inputEmail3" class="col-sm-2 col-form-label">Limit Claim (days)</label>
+							<div class="col-sm-5">
+								<input type="text" class="form-control" id="da" name="da" value="7">
+							</div>
+						</div>
+					
+						<div class="form-group row">
+							<label for="inputEmail3" class="col-sm-2 col-form-label">PK Target</label>
+							<div class="col-sm-5">
+							<textarea class="form-control" id="tujuan" name="tujuan" cols="80" rows="5" placeholder="Public Key Target"></textarea>
+							<input id="myFile" type="file"/><br><br>
+							<button id="kirim" class="btn btn-primary">Proses</button>
+							</div>
+						</div>	
+
+			<div class="form-group row">
+			<label for="inputEmail3" class="col-sm-2 col-form-label"></label>
+			<div class="col-sm-5">
+			<label id="prs" class="small">...</label>
+			</div>	
+			</div>
+
+			<div class="form-group row">
+			<label for="inputEmail3" class="col-sm-2 col-form-label">Output</label>
+			<div class="col-sm-5">
+			<small><textarea style="font-size:10px; width:100%; outline: none;" id="log" name="log" cols="80" rows="5" readonly></textarea></small>
+			<center><label class="small">Donasi XLM : GA3N4VBVORQ2WVVA5RZY5F3ON3Y4UJXWLIMSY6VNYX2XAFJNVUBISTON</label></center>
+			</div>	
+			</div>
+
+
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		
+
+
+
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/stellar-sdk/9.0.0-beta.0/stellar-sdk.min.js"></script>   
+ <script>
+
+function aclaim(sourceSecretKey,receiver){
+		//////////EDIT HERE ////////////////////////
+        var na_asset = "AQUA"
+        var iss_asset = "GBNZILSTVQZ4R7IKQDGHYGY2QXL5QOFJYQMXPKWRRM5PAV7Y4M67AQUA"
+        ///////////////////////////////////////////
+        const server = new StellarSdk.Server('https://horizon.stellar.org');
+        var sourceKeypair = StellarSdk.Keypair.fromSecret(sourceSecretKey);
+        var publicKey = sourceKeypair.publicKey();
+		asset = new StellarSdk.Asset(na_asset, iss_asset);
+		var jum = $('#amo').val();
+		var da = $('#da').val();
+		const days = da*24*60*60
+		let soon = Math.ceil((Date.now() / 1000) + days);
+
+		const claimants = [
+		  new StellarSdk.Claimant(
+		     receiver,
+		     StellarSdk.Claimant.predicateBeforeAbsoluteTime(soon.toString())
+		     //StellarSdk.Claimant.predicateBeforeRelativeTime(seconds)
+		     //0
+		  )
+		];
+
+        (async function main() {
+            const account = await server.loadAccount(publicKey);
+            //const fee = await server.fetchBaseFee();
+            const fee = 500;
+            const transaction = new StellarSdk.TransactionBuilder(account, { fee, networkPassphrase: StellarSdk.Networks.PUBLIC })
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                .addOperation(
+		            StellarSdk.Operation.createClaimableBalance({
+		         		asset: asset,
+		         		amount: jum,
+		         		claimants: claimants
+		            })
+
+                )
+
+             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                .setTimeout(30)
+                .build();
+            transaction.sign(sourceKeypair);
+            try {
+                const transactionResult = await server.submitTransaction(transaction);
+                console.log(transactionResult);
+                mlog(receiver+" | "+jum)
+                processReceiver()
+            } catch (err) {
+                console.error(err);
+                mlog(receiver+" | "+err)
+                processReceiver()
+            }
+        })()
+
+}
+
+
+
+			function processReceiver(){
+				if($('#secretkey').val().length == 0)return false;
+				var sourceSecretKey = $('#secretkey').val();
+
+				if($('#tujuan').val().length == 0)return false;
+				var lines = $('#tujuan').val().split(/\r\n|\n/);
+				var receiver = lines[0];
+				lines.shift();
+				$('#tujuan').val(lines.join("\r\n"));		
+				aclaim(sourceSecretKey,receiver)
+			}
+				
+
+$('#kirim').on('click',function(e){
+	processReceiver();
+});			
+
+window.onload = function () {
+
+        var fileupload = document.getElementById("myFile");
+        var filePath = document.getElementById("spnFilePath");
+        var button = document.getElementById("myFile");
+
+        button.onclick = function () {
+            fileupload.click();
+        };
+
+        fileupload.onchange = function () {
+            var file = document.getElementById("myFile").files[0]; 
+		   var reader = new FileReader();
+			reader.onload = function (e) {
+				var textArea = document.getElementById("tujuan");
+				textArea.value = e.target.result;
+			};
+			reader.readAsText(file);
+        };
+    };
+    
+
+
+
+
+
+function numm(nu){
+n = Number(nu).toFixed(7);
+return n;
+}
+
+
+function mlog(xlog){
+	var tx = document.getElementById('log').value;
+	res = xlog+"\n"+tx
+	document.getElementById('log').value = res
+}
+
+
+function loadJSON(file, callback) {   
+    var xobj = new XMLHttpRequest();
+    xobj.overrideMimeType("application/json");
+    xobj.open('GET', file, true); // Replace 'my_data' with the path to your file
+    xobj.onreadystatechange = function () {
+          if (xobj.readyState == 4 && xobj.status == "200") {
+            callback(xobj.responseText);
+          }
+    };
+    xobj.send(null);}
+</script>
+		
+	</body>
+
+<hr>
+<!-- by https://t.me/xoerbiston -->
